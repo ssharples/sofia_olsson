@@ -218,7 +218,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
         <div className="relative aspect-w-3 aspect-h-4 rounded-lg overflow-hidden bg-gray-100">
           <Link to={`/artwork/${artwork.id}`}>
             <img
-              src={artwork.imageUrl}
+              src={artwork.image_url}
               alt={artwork.title}
               className={`w-full h-full object-cover transition-all duration-300 ${
                 artwork.isBlurred ? 'blur-lg scale-110' : ''

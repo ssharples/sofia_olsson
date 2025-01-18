@@ -25,15 +25,13 @@ export function ArtworkPage() {
         setArtwork(data);
 
         // Generate blurred preview image
-        if (data?.imageUrl) {
+        if (data?.image_url) {
           const response = await supabase.functions.invoke('generate-blurred-image', {
-            body: { imageUrl: data.imageUrl }
+            body: { imageUrl: data.image_url }
           });
-          const blurredUrl = response.data?.blurredUrl;
-          if (blurredUrl && typeof blurredUrl === 'string') {
+          const blurredUrl = response.data?.blurredUrl ?? undefined;
+          if (blurredUrl) {
             setBlurredImageUrl(blurredUrl);
-          } else {
-            setBlurredImageUrl(undefined);
           }
         }
       } catch (err) {
@@ -88,7 +86,7 @@ export function ArtworkPage() {
           <div className="max-w-4xl mx-auto">
             <div className="backdrop-blur-lg bg-white/5 rounded-2xl p-6">
               <img 
-                src={artwork.imageUrl}
+                src={artwork.image_url}
                 alt={artwork.title}
                 className="w-full h-auto rounded-lg mb-6"
                 style={{

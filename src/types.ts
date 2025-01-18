@@ -14,7 +14,7 @@ export interface Artwork {
   id: string;
   title: string;
   description: string | null;
-  imageUrl: string;
+  image_url: string;
   price: number;
   createdAt: string;
   isBlurred: boolean;
