@@ -2,15 +2,34 @@ import { createClient } from '@supabase/supabase-js'
 import { createReadStream } from 'fs'
 import { pipeline } from 'stream/promises'
 import sharp from 'sharp'
+import cors from 'cors'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// Enable CORS
+const corsHandler = cors({
+  origin: [
+    'https://sofia-olsson.vercel.app',
+    'https://www.sofia-olsson.online',
+    'http://localhost:3000'
+  ],
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+})
+
 export default async (req: any, res: any) => {
-  try {
-    const { imageUrl } = req.body
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end()
+  }
+
+  // Apply CORS middleware
+  corsHandler(req, res, async () => {
+    try {
+      const { imageUrl } = req.body
     
     // Download the original image
     const { data: imageBuffer, error: downloadError } = await supabase.storage
