@@ -21,8 +21,16 @@ export const BlurredCanvas: React.FC<BlurredCanvasProps> = ({
     if (!ctx) return;
 
     const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = imageUrl;
+    // Handle mobile-specific CORS issues
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    img.crossOrigin = isMobile ? 'use-credentials' : 'anonymous';
+    
+    // Add timestamp cache buster for mobile
+    const url = new URL(imageUrl);
+    if (isMobile) {
+      url.searchParams.set('t', Date.now().toString());
+    }
+    img.src = url.toString();
 
     img.onload = () => {
       try {
