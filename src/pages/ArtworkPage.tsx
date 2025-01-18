@@ -7,6 +7,7 @@ import { useAuth } from '../lib/auth';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Lock } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
+import { BlurredCanvas } from '../components/BlurredCanvas';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY ?? '');
@@ -221,21 +222,27 @@ export function ArtworkPage() {
                 className="relative"
                 onContextMenu={(e) => e.preventDefault()}
               >
-                <img 
-                  src={artwork.image_url}
-                  alt={artwork.title}
-                  className={`w-full h-auto rounded-lg mb-6 ${
-                    artwork.isBlurred ? 'pointer-events-none select-none' : ''
-                  }`}
-                  style={{
-                    filter: user && subscription ? 'none' : 'blur(20px)',
-                    transition: 'filter 0.3s ease',
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none'
-                  }}
-                />
+                <div className="relative aspect-w-3 aspect-h-4 rounded-lg overflow-hidden bg-gray-100">
+                  {artwork.isBlurred && !(user && subscription) ? (
+                    <BlurredCanvas 
+                      imageUrl={artwork.image_url}
+                      blurAmount={20}
+                      className="w-full h-full"
+                    />
+                  ) : (
+                    <img 
+                      src={artwork.image_url}
+                      alt={artwork.title}
+                      className="w-full h-full object-cover"
+                      style={{
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none'
+                      }}
+                    />
+                  )}
+                </div>
                 {artwork.isBlurred && !(user && subscription) && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40 p-4">
                     <Lock className="w-8 h-8 text-white mb-4" />
