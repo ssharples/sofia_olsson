@@ -223,7 +223,7 @@ export function ArtworkPage() {
                 onContextMenu={(e) => e.preventDefault()}
               >
                 <div className="relative aspect-w-3 aspect-h-4 rounded-lg overflow-hidden bg-gray-100">
-                  {artwork.isBlurred && !(user && subscription) ? (
+                  {(!user || !subscription) ? (
                     <BlurredCanvas 
                       imageUrl={artwork.image_url}
                       blurAmount={20}
