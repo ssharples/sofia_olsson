@@ -25,20 +25,40 @@ export const BlurredCanvas: React.FC<BlurredCanvasProps> = ({
     img.src = imageUrl;
 
     img.onload = () => {
-      // Set canvas dimensions
-      canvas.width = img.width;
-      canvas.height = img.height;
+      try {
+        // Set canvas dimensions while maintaining aspect ratio
+        const maxWidth = window.innerWidth * 0.8;
+        const maxHeight = window.innerHeight * 0.8;
+        const ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
+        
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
 
-      // Draw image with blur
-      ctx.filter = `blur(${blurAmount}px)`;
-      ctx.drawImage(img, 0, 0);
+        // Draw image with blur
+        ctx.filter = `blur(${blurAmount}px)`;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // Disable right click
-      canvas.oncontextmenu = (e) => e.preventDefault();
+        // Disable right click
+        canvas.oncontextmenu = (e) => e.preventDefault();
+      } catch (error) {
+        console.error('Error drawing image:', error);
+        // Fallback to showing a placeholder
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
     };
 
     img.onerror = (error) => {
       console.error('Error loading image:', error);
+      if (ctx) {
+        // Show error state
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, canvas.width || 500, canvas.height || 500);
+        ctx.fillStyle = '#000';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Failed to load image', (canvas.width || 500)/2, (canvas.height || 500)/2);
+      }
     };
   }, [imageUrl, blurAmount]);
 
