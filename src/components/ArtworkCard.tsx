@@ -298,6 +298,35 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
         <div className="mt-2 space-y-1">
           <h3 className="text-lg font-medium text-gray-900">{artwork.title}</h3>
           <p className="text-sm text-gray-500">£{artwork.price.toFixed(2)}</p>
+          <button
+            onClick={async () => {
+              const url = `${window.location.origin}/artwork/${artwork.id}`;
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title: artwork.title,
+                    text: `Check out this artwork by ${artwork.artist_name}`,
+                    url: url
+                  });
+                } catch (err) {
+                  console.error('Share failed:', err);
+                }
+              } else {
+                try {
+                  await navigator.clipboard.writeText(url);
+                  alert('Link copied to clipboard!');
+                } catch (err) {
+                  console.error('Copy failed:', err);
+                }
+              }
+            }}
+            className="mt-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-2 rounded-md text-sm flex items-center justify-center gap-1"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+            </svg>
+            Share
+          </button>
         </div>
       </div>
 

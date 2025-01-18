@@ -1,0 +1,8 @@
+{
+  "name": "generate-blurred-image",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "sharp": "^0.32.0"
+  }
+}

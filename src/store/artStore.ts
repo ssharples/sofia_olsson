@@ -4,11 +4,13 @@ import { Artwork, Artist } from '../types';
 
 interface ArtStore {
   artworks: Artwork[];
+  artwork: Artwork | null;
   artist: Artist | null;
   isLoading: boolean;
   purchasedArtworkIds: string[];
   hasLifetimeAccess: boolean;
   setArtworks: (artworks: Artwork[]) => void;
+  setArtwork: (artwork: Artwork | null) => void;
   setArtist: (artist: Artist) => void;
   setLoading: (loading: boolean) => void;
   updateArtwork: (id: string, updates: Partial<Artwork>) => void;
@@ -21,10 +23,12 @@ export const useArtStore = create<ArtStore>()(
   persist(
     (set, get) => ({
       artworks: [],
+      artwork: null,
       artist: null,
       isLoading: true,
       purchasedArtworkIds: [],
       hasLifetimeAccess: false,
+      setArtwork: (artwork) => set({ artwork }),
       setArtworks: (artworks) => {
         // When setting artworks, apply the purchased state
         const purchasedIds = get().purchasedArtworkIds;
