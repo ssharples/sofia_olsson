@@ -8,6 +8,7 @@ interface ArtStore {
   artist: Artist | null;
   isLoading: boolean;
   purchasedArtworkIds: string[];
+  purchasedArtworks: string[];
   hasLifetimeAccess: boolean;
   setArtworks: (artworks: Artwork[]) => void;
   setArtwork: (artwork: Artwork | null) => void;
@@ -27,6 +28,7 @@ export const useArtStore = create<ArtStore>()(
       artist: null,
       isLoading: true,
       purchasedArtworkIds: [],
+      purchasedArtworks: [],
       hasLifetimeAccess: false,
       setArtwork: (artwork) => set({ artwork }),
       setArtworks: (artworks) => {
