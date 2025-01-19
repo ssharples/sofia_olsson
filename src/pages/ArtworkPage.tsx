@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useArtStore } from '../store/artStore';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { supabase } from '../lib/supabase';
@@ -217,19 +217,21 @@ export function ArtworkPage() {
                 onContextMenu={(e) => e.preventDefault()}
               >
                 <div className="relative aspect-w-3 aspect-h-4 rounded-lg overflow-hidden bg-gray-100">
-                  <img 
-                    src={artwork.image_url}
-                    alt={artwork.title}
-                    className={`w-full h-full object-cover ${
-                      (!user || !subscription) && artwork.isBlurred ? 'blur-lg scale-110' : ''
-                    }`}
-                    style={{
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none'
-                    }}
-                  />
+                  <Link to={`/artwork/${artwork.id}`}>
+                    <img
+                      src={artwork.image_url}
+                      alt={artwork.title}
+                      className={`w-full h-full object-cover transition-all duration-300 ${
+                        artwork.isBlurred ? 'blur-lg scale-110' : ''
+                      }`}
+                      style={{
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none'
+                      }}
+                    />
+                  </Link>
                 </div>
                 {artwork.isBlurred && !(user && subscription) && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40 p-4">
