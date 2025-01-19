@@ -121,13 +121,7 @@ export function ArtworkPage() {
         setArtwork(data);
 
         if (data?.image_url) {
-          const response = await supabase.functions.invoke('generate-blurred-image', {
-            body: { imageUrl: data.image_url }
-          });
-          const blurredUrl = response.data?.blurredUrl ?? undefined;
-          if (blurredUrl) {
-            setBlurredImageUrl(blurredUrl);
-          }
+          setBlurredImageUrl(data.image_url);
         }
       } catch (err) {
         console.error('Failed to load artwork:', err);
@@ -223,25 +217,19 @@ export function ArtworkPage() {
                 onContextMenu={(e) => e.preventDefault()}
               >
                 <div className="relative aspect-w-3 aspect-h-4 rounded-lg overflow-hidden bg-gray-100">
-                  {(!user || !subscription) ? (
-                    <BlurredCanvas 
-                      imageUrl={artwork.image_url}
-                      blurAmount={20}
-                      className="w-full h-full"
-                    />
-                  ) : (
-                    <img 
-                      src={artwork.image_url}
-                      alt={artwork.title}
-                      className="w-full h-full object-cover"
-                      style={{
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none'
-                      }}
-                    />
-                  )}
+                  <img 
+                    src={artwork.image_url}
+                    alt={artwork.title}
+                    className={`w-full h-full object-cover ${
+                      (!user || !subscription) && artwork.isBlurred ? 'blur-lg scale-110' : ''
+                    }`}
+                    style={{
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none'
+                    }}
+                  />
                 </div>
                 {artwork.isBlurred && !(user && subscription) && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40 p-4">
