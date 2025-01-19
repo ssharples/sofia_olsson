@@ -222,7 +222,7 @@ export function ArtworkPage() {
                       src={artwork.image_url}
                       alt={artwork.title}
                       className={`w-full h-full object-cover transition-all duration-300 ${
-                        artwork.isBlurred ? 'blur-lg scale-110' : ''
+                        (artwork.isBlurred && !(user && subscription)) ? 'blur-lg scale-110' : ''
                       }`}
                       style={{
                         userSelect: 'none',
@@ -232,8 +232,7 @@ export function ArtworkPage() {
                       }}
                     />
                   </Link>
-                </div>
-                {artwork.isBlurred && !(user && subscription) && (
+                  {artwork.isBlurred && !(user && subscription) && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40 p-4">
                     <Lock className="w-8 h-8 text-white mb-4" />
                     <div className="w-full max-w-md">
@@ -280,6 +279,7 @@ export function ArtworkPage() {
                     </div>
                   </div>
                 )}
+                </div>
               </div>
               <h1 className="text-3xl font-bold mb-4">{artwork.title}</h1>
               <p className="text-gray-300">{artwork.description}</p>
