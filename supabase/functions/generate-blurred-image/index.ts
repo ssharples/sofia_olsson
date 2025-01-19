@@ -1,35 +1,24 @@
-import { createClient } from '@supabase/supabase-js'
-import { createReadStream } from 'fs'
-import { pipeline } from 'stream/promises'
-import sharp from 'sharp'
-import cors from 'cors'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import * as sharp from 'https://deno.land/x/sharp@0.32.1/mod.ts'
+import { corsHeaders } from '../_shared/cors.ts'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// Enable CORS
-const corsHandler = cors({
-  origin: [
-    'https://sofia-olsson.vercel.app',
-    'https://www.sofia-olsson.online',
-    'http://localhost:3000'
-  ],
-  methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-})
-
-export default async (req: any, res: any) => {
+serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return res.status(204).end()
+    return new Response(null, {
+      status: 204,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
-  // Apply CORS middleware
-  corsHandler(req, res, async () => {
-    try {
-      const { imageUrl } = req.body
+  try {
+    const { imageUrl, artworkId } = await req.json();
     
     // Download the original image
     const { data: imageBuffer, error: downloadError } = await supabase.storage
@@ -45,7 +34,7 @@ export default async (req: any, res: any) => {
       .toBuffer()
 
     // Upload blurred version
-    const blurredPath = `blurred/${Date.now()}.jpg`
+    const blurredPath = `blurred/${artworkId}.jpg`
     const { error: uploadError } = await supabase.storage
       .from('artworks')
       .upload(blurredPath, blurredImage, {
@@ -60,22 +49,15 @@ export default async (req: any, res: any) => {
       .from('artworks')
       .getPublicUrl(blurredPath)
 
-    res
-      .status(200)
-      .setHeader('Access-Control-Allow-Origin', [
-        'https://www.sofia-olsson.online',
-        'https://sofia-olsson.vercel.app',
-        'http://localhost:3000'
-      ])
-      .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-      .setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      .json({ blurredUrl: publicUrl })
-    } catch (error) {
-      console.error('Error generating blurred image:', error)
-      res
-        .status(500)
-        .setHeader('Access-Control-Allow-Origin', '*')
-        .json({ error: 'Failed to generate blurred image' })
-    }
-  })
-}
+    return new Response(JSON.stringify({ blurredUrl: publicUrl }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    });
+  } catch (error) {
+    console.error('Error generating blurred image:', error)
+    return new Response(JSON.stringify({ error: 'Failed to generate blurred image' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500,
+    });
+  }
+})
