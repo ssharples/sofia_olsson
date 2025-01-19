@@ -109,22 +109,28 @@ export function ArtworkPage() {
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
+    if (!id) return;
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('artworks')
           .select('*')
           .eq('id', id)
           .single();
-        
-        setArtwork(data);
 
-        if (data?.image_url) {
-          setBlurredImageUrl(data.image_url);
+        if (error) throw error;
+        
+        if (data) {
+          setArtwork(data);
+          if (data.image_url) {
+            setBlurredImageUrl(data.image_url);
+          }
         }
       } catch (err) {
         console.error('Failed to load artwork:', err);
+        setError('Failed to load artwork');
       } finally {
         setLoading(false);
       }
@@ -222,7 +228,7 @@ export function ArtworkPage() {
                       src={artwork.image_url}
                       alt={artwork.title}
                       className={`w-full h-full object-cover transition-all duration-300 ${
-                        (artwork.isBlurred && !(user && subscription)) ? 'blur-lg scale-110' : ''
+                        artwork.isBlurred && !(user && subscription) ? 'blur-lg scale-110' : ''
                       }`}
                       style={{
                         userSelect: 'none',
@@ -233,7 +239,7 @@ export function ArtworkPage() {
                     />
                   </Link>
                   {artwork.isBlurred && !(user && subscription) && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40 p-4">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 p-4" style={{ touchAction: 'manipulation' }}>
                     <Lock className="w-8 h-8 text-white mb-4" />
                     <div className="w-full max-w-md">
                       {showPayment && clientSecret ? (
