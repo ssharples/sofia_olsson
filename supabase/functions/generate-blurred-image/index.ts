@@ -60,9 +60,22 @@ export default async (req: any, res: any) => {
       .from('artworks')
       .getPublicUrl(blurredPath)
 
-    res.status(200).json({ blurredUrl: publicUrl })
-  } catch (error) {
-    console.error('Error generating blurred image:', error)
-    res.status(500).json({ error: 'Failed to generate blurred image' })
-  }
+    res
+      .status(200)
+      .setHeader('Access-Control-Allow-Origin', [
+        'https://www.sofia-olsson.online',
+        'https://sofia-olsson.vercel.app',
+        'http://localhost:3000'
+      ])
+      .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+      .setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      .json({ blurredUrl: publicUrl })
+    } catch (error) {
+      console.error('Error generating blurred image:', error)
+      res
+        .status(500)
+        .setHeader('Access-Control-Allow-Origin', '*')
+        .json({ error: 'Failed to generate blurred image' })
+    }
+  })
 }
