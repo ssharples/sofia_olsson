@@ -121,9 +121,13 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
 interface ArtworkCardProps {
   artwork: Artwork;
+  imageUrls?: {
+    original: string;
+    blurred: string;
+  };
 }
 
-export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
+export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, imageUrls }) => {
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -218,11 +222,12 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
         <div className="relative aspect-w-3 aspect-h-4 rounded-lg overflow-hidden bg-gray-100">
           <Link to={`/artwork/${artwork.id}`}>
             <img
-              src={artwork.image_url}
+              src={artwork.isBlurred && imageUrls?.blurred ? 
+                imageUrls.blurred : 
+                imageUrls?.original || artwork.image_url
+              }
               alt={artwork.title}
-              className={`w-full h-full object-cover transition-all duration-300 ${
-                artwork.isBlurred ? 'blur-lg scale-110' : ''
-              }`}
+              className="w-full h-full object-cover transition-all duration-300"
             />
           </Link>
           {artwork.isBlurred && (
@@ -297,7 +302,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
         </div>
         <div className="mt-2 space-y-1">
           <h3 className="text-lg font-medium text-gray-900">{artwork.title}</h3>
-          <p className="text-sm text-gray-500">£{artwork.price.toFixed(2)}</p>
+          <p className="text-sm text-gray-500">£{(artwork.price || 0).toFixed(2)}</p>
           <button
             onClick={async () => {
               const url = `${window.location.origin}/artwork/${artwork.id}`;

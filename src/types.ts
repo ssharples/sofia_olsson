@@ -2,6 +2,7 @@ export interface Artist {
   id: string;
   name: string;
   bio: string | null;
+  profilePicture: string;
   avatar_url: string | null;
   instagram_url: string | null;
   twitter_url: string | null;
@@ -13,13 +14,18 @@ export interface Artist {
 export interface Artwork {
   id: string;
   title: string;
-  description: string | null;
+  description?: string;
   image_url: string;
   blurred_url?: string;
-  price: number;
-  createdAt: string;
-  isBlurred: boolean;
-  artist_name: string;
+  price?: number;
+  createdAt?: string;
+  isBlurred?: boolean;
+  artist_name?: string;
+}
+
+export interface ImageUrls {
+  original: string;
+  blurred: string;
 }
 
 export interface Database {

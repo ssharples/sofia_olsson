@@ -1,40 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { useArtStore } from '../store/artStore';
-import { ArtistProfile } from '../components/ArtistProfile';
+import { supabase } from '../lib/supabase';
 import { ArtworkGrid } from '../components/ArtworkGrid';
 import { LoadingSpinner } from '../components/LoadingSpinner';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { AuthModal } from '../components/AuthModal';
 import { SubscriptionOffer } from '../components/SubscriptionOffer';
 import { AccountMenu } from '../components/AccountMenu';
-
-// Eva's artist ID
-const ARTIST_ID = '26ad1700-852f-43f2-9abe-46e8aa8596e3';
-
 export function Gallery() {
-  const { artworks, artist, isLoading, setArtworks, setArtist, setLoading } = useArtStore();
+  const { artworks, isLoading, setArtworks, setLoading } = useArtStore();
   const [error, setError] = React.useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const { user, subscription } = useAuth();
+  const [purchasedImages, setPurchasedImages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { data: artistData } = await supabase
-          .from('artists')
+        
+        // Fetch images from Supabase
+        const { data: images, error } = await supabase
+          .from('gallery_images')
           .select('*')
-          .eq('id', ARTIST_ID)
-          .single();
+          .order('created_at', { ascending: false });
 
-        const { data: artworksData } = await supabase
-          .from('artworks')
-          .select('*')
-          .eq('artist_id', ARTIST_ID);
+        if (error) throw error;
 
-        setArtist(artistData);
+        // Create artworks data structure
+        const artworksData = images.map((image) => ({
+          id: image.id,
+          image_url: image.original_url,
+          blurred_url: image.blurred_url,
+          title: image.id,
+          description: '',
+          created_at: image.created_at,
+          price: image.price
+        }));
+
         setArtworks(artworksData);
       } catch (err) {
         setError('Failed to load data');
@@ -44,7 +48,12 @@ export function Gallery() {
     };
 
     fetchData();
-  }, [setArtworks, setArtist, setLoading]);
+  }, [setArtworks, setLoading]);
+
+  // Check if user has purchased an image
+  const hasPurchasedImage = (imageId: string) => {
+    return purchasedImages.has(imageId);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
@@ -52,24 +61,17 @@ export function Gallery() {
       <div className="fixed inset-0 bg-[url('/noise.svg')] opacity-[0.015] pointer-events-none" />
 
       <header className="relative container mx-auto px-4 py-8 flex flex-col items-center text-center">
-        {artist && (
-          <div className="backdrop-blur-lg bg-white/5 rounded-2xl p-6 mb-8 shadow-xl w-full max-w-2xl">
-            <img src={artist.profilePicture} alt={artist.name} className="w-24 h-24 rounded-full mx-auto mb-4" />
-            <h1 className="text-3xl font-bold mb-2">{artist.name}</h1>
-            <p className="text-gray-300 mb-4">{artist.bio}</p>
-            <div className="flex justify-center gap-4">
-              <button className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 text-white font-medium transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]">
-                Follow
-              </button>
-              <button
-                onClick={() => setShowSubscriptionModal(true)}
-                className="px-4 py-2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white font-medium transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Subscribe
-              </button>
-            </div>
+        <div className="backdrop-blur-lg bg-white/5 rounded-2xl p-6 mb-8 shadow-xl w-full max-w-2xl">
+          <h1 className="text-3xl font-bold mb-2">Gallery</h1>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={() => setShowSubscriptionModal(true)}
+              className="px-4 py-2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white font-medium transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Subscribe
+            </button>
           </div>
-        )}
+        </div>
       </header>
 
       <main className="relative container mx-auto px-4 py-8">
@@ -97,7 +99,19 @@ export function Gallery() {
           /* Artwork Grid */
           artworks && (
             <div className="backdrop-blur-lg bg-white/5 rounded-2xl p-4 md:p-6">
-              <ArtworkGrid artworks={artworks} />
+          <ArtworkGrid 
+            artworks={artworks}
+            imageUrls={Object.fromEntries(
+              artworks.map(artwork => [
+                artwork.id, 
+                {
+                  original: artwork.image_url,
+                  blurred: artwork.blurred_url || ''
+                }
+              ])
+            )}
+            hasPurchasedImage={hasPurchasedImage}
+          />
             </div>
           )
         )}
