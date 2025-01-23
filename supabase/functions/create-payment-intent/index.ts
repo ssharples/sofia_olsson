@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+  import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 import Stripe from 'https://esm.sh/stripe@11.1.0?target=deno';
 import { corsHeaders } from '../_shared/cors.ts';
@@ -64,7 +64,7 @@ serve(async (req) => {
 
       // Always verify the artwork exists first
       const { data: artwork, error: artworkError } = await supabase
-        .from('artworks')
+        .from('gallery_images')
         .select('*')
         .eq('id', artworkId)
         .single();
@@ -113,7 +113,7 @@ serve(async (req) => {
           },
           metadata: {
             artworkId,
-            title: artwork.title,
+            original_url: artwork.original_url,
           },
         });
 
@@ -122,7 +122,7 @@ serve(async (req) => {
             clientSecret: paymentIntent.client_secret,
             artwork: {
               id: artwork.id,
-              title: artwork.title,
+              original_url: artwork.original_url,
               price: artwork.price,
             },
           }),

@@ -1,0 +1,11 @@
+{
+  "importMap": "./import_map.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "lib": ["deno.window"],
+    "types": [
+      "https://deno.land/x/supabase_deno@v0.0.1/types.d.ts",
+      "https://deno.land/x/stripe@11.1.0/types.d.ts"
+    ]
+  }
+}
