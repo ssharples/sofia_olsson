@@ -11,6 +11,7 @@ import {
 } from '@stripe/react-stripe-js';
 import { Artwork } from '../types';
 import { LifetimeAccessOffer } from './LifetimeAccessOffer';
+import { UpsellModal } from './UpsellModal';
 import { useArtStore } from '../store/artStore';
 import { supabase } from '../lib/supabase';
 
@@ -350,6 +351,15 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, imageUrls }) 
           </button>
         </div>
       </div>
+
+      {showUpsellModal && (
+        <UpsellModal
+          price={artwork.price}
+          title={artwork.title}
+          onClose={() => setShowUpsellModal(false)}
+          onSelect={handleUpsellChoice}
+        />
+      )}
 
       {showLifetimeOffer && (
         <LifetimeAccessOffer

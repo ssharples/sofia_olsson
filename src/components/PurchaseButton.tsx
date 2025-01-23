@@ -199,10 +199,16 @@ export const PurchaseButton: React.FC<PurchaseButtonProps> = ({
 
       {showUpsell && (
           <UpsellModal
-            currentPrice={price}
-            onAccept={(offerType) => handleUpsellAccept(offerType)}
-            onDecline={handlePurchaseClick}
-            isOpen={true}
+            price={price}
+            title="Your Artwork"
+            onClose={() => setShowUpsell(false)}
+            onSelect={(choice) => {
+              if (choice === 'multi') {
+                handleUpsellAccept('multi');
+              } else {
+                handleUpsellDecline();
+              }
+            }}
           />
       )}
 
