@@ -12,7 +12,7 @@ import { supabase } from '../lib/supabase';
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY ?? '');
 
-const appearance = {
+const appearance: { theme: 'stripe', variables: Record<string, string> } = {
   theme: 'stripe',
   variables: {
     colorPrimary: '#000000',
@@ -119,6 +119,9 @@ interface PurchaseButtonProps {
   onError: (error: Error) => void;
 }
 
+import { UpsellModal } from './UpsellModal';
+import { LifetimeAccessOffer } from './LifetimeAccessOffer';
+
 export const PurchaseButton: React.FC<PurchaseButtonProps> = ({
   artworkId,
   price,
@@ -127,7 +130,35 @@ export const PurchaseButton: React.FC<PurchaseButtonProps> = ({
 }) => {
   const [showPayment, setShowPayment] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [showUpsell, setShowUpsell] = useState(true);
+  const [showLifetimeOffer, setShowLifetimeOffer] = useState(false);
+  const [selectedPrice, setSelectedPrice] = useState(price);
+  const [quantity, setQuantity] = useState(1);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
+
+  const handleUpsellAccept = (offerType: 'multi'|'lifetime') => {
+    setSelectedPrice(price * 0.25);
+    setQuantity(5);
+    setShowUpsell(false);
+    setShowLifetimeOffer(true);
+  };
+
+  const handleUpsellDecline = () => {
+    setShowUpsell(false);
+    setShowLifetimeOffer(true);
+  };
+
+  const handleLifetimeAccept = () => {
+    setSelectedPrice(69);
+    setQuantity(999); // Special value for lifetime access
+    setShowLifetimeOffer(false);
+    handlePurchaseClick();
+  };
+
+  const handleLifetimeDecline = () => {
+    setShowLifetimeOffer(false);
+    handlePurchaseClick();
+  };
 
   const handlePurchaseClick = async () => {
     try {
@@ -135,8 +166,9 @@ export const PurchaseButton: React.FC<PurchaseButtonProps> = ({
       const { data, error: paymentIntentError } = await supabase.functions.invoke('create-payment-intent', {
         body: { 
           artworkId,
-          price,
-          type: 'payment_element'
+          price: selectedPrice,
+          quantity,
+          type: quantity === 999 ? 'lifetime' : 'payment_element'
         }
       });
 
@@ -154,16 +186,34 @@ export const PurchaseButton: React.FC<PurchaseButtonProps> = ({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg">
-      {!showPayment ? (
+      {!showPayment && !showUpsell && !showLifetimeOffer ? (
         <button
           ref={buttonRef}
-          onClick={handlePurchaseClick}
+          onClick={() => setShowUpsell(true)}
           className="w-full bg-black text-white py-3 px-6 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-800 transition-colors"
         >
           <CreditCard className="w-5 h-5" />
-          <span>Purchase for £{price.toFixed(2)}</span>
+          <span>Unblur Image (£{price.toFixed(2)})</span>
         </button>
-      ) : clientSecret ? (
+      ) : null}
+
+      {showUpsell && (
+          <UpsellModal
+            currentPrice={price}
+            onAccept={(offerType) => handleUpsellAccept(offerType)}
+            onDecline={handlePurchaseClick}
+            isOpen={true}
+          />
+      )}
+
+      {showLifetimeOffer && (
+        <LifetimeAccessOffer
+          onAccept={handleLifetimeAccept}
+          onDecline={handleLifetimeDecline}
+        />
+      )}
+
+      {clientSecret ? (
         <Elements 
           stripe={stripePromise} 
           options={{ 

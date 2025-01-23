@@ -1,7 +1,7 @@
   import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 import Stripe from 'https://esm.sh/stripe@11.1.0?target=deno';
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 console.log('Starting Edge Function...');
 
@@ -40,7 +40,31 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    try {
+      console.log('Handling OPTIONS request');
+      const origin = req.headers.get('origin');
+      console.log('Request origin:', origin);
+      const headers = {
+        ...getCorsHeaders(origin),
+        'Access-Control-Max-Age': '86400',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        'Access-Control-Allow-Methods': 'PUT, POST, OPTIONS, GET'
+      };
+      console.log('Returning CORS headers:', headers);
+      return new Response(null, { 
+        status: 204, 
+        headers 
+      });
+    } catch (error) {
+      console.error('OPTIONS handler error:', error);
+      return new Response(null, {
+        status: 500,
+        headers: {
+          ...getCorsHeaders(req.headers.get('origin')),
+          'Content-Type': 'application/json'
+        }
+      });
+    }
   }
 
   try {
@@ -57,7 +81,7 @@ serve(async (req) => {
           JSON.stringify({ error: 'Missing required parameters: artworkId and price are required for single artwork purchase' }),
           { 
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...getCorsHeaders(req.headers.get('origin')), 'Content-Type': 'application/json' }
           }
         );
       }
@@ -75,7 +99,7 @@ serve(async (req) => {
           JSON.stringify({ error: 'Failed to verify artwork', details: artworkError }),
           { 
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...getCorsHeaders(req.headers.get('origin')), 'Content-Type': 'application/json' }
           }
         );
       }
@@ -86,7 +110,7 @@ serve(async (req) => {
           JSON.stringify({ error: `Artwork not found with ID: ${artworkId}` }),
           { 
             status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...getCorsHeaders(req.headers.get('origin')), 'Content-Type': 'application/json' }
           }
         );
       }
@@ -98,7 +122,7 @@ serve(async (req) => {
           JSON.stringify({ error: 'Price mismatch', details: { expected: artwork.price, received: price } }),
           { 
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...getCorsHeaders(req.headers.get('origin')), 'Content-Type': 'application/json' }
           }
         );
       }
@@ -128,7 +152,7 @@ serve(async (req) => {
           }),
           {
             headers: {
-              ...corsHeaders,
+              ...getCorsHeaders(req.headers.get('origin')),
               'Content-Type': 'application/json',
             },
             status: 200,
@@ -140,7 +164,7 @@ serve(async (req) => {
           JSON.stringify({ error: 'Payment processing failed', details: stripeError }),
           { 
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...getCorsHeaders(req.headers.get('origin')), 'Content-Type': 'application/json' }
           }
         );
       }
@@ -164,7 +188,7 @@ serve(async (req) => {
           }),
           {
             headers: {
-              ...corsHeaders,
+              ...getCorsHeaders(req.headers.get('origin')),
               'Content-Type': 'application/json',
             },
             status: 200,
@@ -176,7 +200,7 @@ serve(async (req) => {
           JSON.stringify({ error: 'Lifetime access payment failed', details: stripeError }),
           { 
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...getCorsHeaders(req.headers.get('origin')), 'Content-Type': 'application/json' }
           }
         );
       }
@@ -192,7 +216,7 @@ serve(async (req) => {
       }),
       {
         headers: {
-          ...corsHeaders,
+          ...getCorsHeaders(req.headers.get('origin')),
           'Content-Type': 'application/json',
         },
         status: 500,
