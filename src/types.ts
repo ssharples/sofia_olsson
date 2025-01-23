@@ -17,7 +17,7 @@ export interface Artwork {
   description?: string;
   image_url: string;
   blurred_url?: string;
-  price?: number;
+  price: number;
   createdAt?: string;
   isBlurred?: boolean;
   artist_name?: string;

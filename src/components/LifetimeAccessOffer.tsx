@@ -2,13 +2,13 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 interface LifetimeOfferProps {
-  onAccept: () => void;
-  onDecline: () => void;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
-export const LifetimeAccessOffer: React.FC<LifetimeOfferProps> = ({ 
-  onAccept,
-  onDecline 
+export const LifetimeAccessOffer: React.FC<LifetimeOfferProps> = ({
+  onClose,
+  onSuccess
 }) => {
   return (
     <motion.div
@@ -25,16 +25,19 @@ export const LifetimeAccessOffer: React.FC<LifetimeOfferProps> = ({
         
         <div className="flex flex-col gap-3">
           <button
-            onClick={onAccept}
+            onClick={() => {
+              onSuccess();
+              onClose();
+            }}
             className="bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
           >
             Get Lifetime Access ($69)
           </button>
           <button
-            onClick={onDecline}
+            onClick={onClose}
             className="py-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
           >
-            Continue to Checkout
+            Continue with Single Purchase
           </button>
         </div>
       </div>

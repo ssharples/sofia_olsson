@@ -145,18 +145,34 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, imageUrls }) 
   } | null>(null);
   const updateArtwork = useArtStore((state) => state.updateArtwork);
 
+  const [showUpsellModal, setShowUpsellModal] = React.useState(false);
+  const [selectedOffer, setSelectedOffer] = React.useState<'single' | 'multi' | null>(null);
+
   const handlePurchaseClick = async () => {
+    setShowUpsellModal(true);
+  };
+
+  const handleUpsellChoice = async (choice: 'single' | 'multi') => {
+    setShowUpsellModal(false);
     setIsLoading(true);
     setError(null);
+    setSelectedOffer(choice);
 
     try {
+      if (!artwork.price) {
+        throw new Error('This artwork does not have a price configured');
+      }
+      const quantity = choice === 'multi' ? 5 : 1;
+      const unitPrice = choice === 'multi' ? artwork.price * 0.25 : artwork.price;
+
       console.log('Creating payment intent for artwork:', artwork.id);
       const { data, error: paymentError } = await supabase.functions.invoke(
         'create-payment-intent',
         {
           body: {
             artworkId: artwork.id,
-            price: artwork.price,
+            price: unitPrice,
+            quantity: quantity,
             type: 'payment_element',
           },
         }
